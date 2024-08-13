@@ -1,0 +1,94 @@
+.main{
+    height: 100vh;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    background-color: gray;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.subMain{
+    width: 70%;
+    display: flex;
+    border-radius: 20px;
+}
+.leftDiv{
+    padding: 60px 0;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+form{
+    position: relative;
+}
+.forms{
+    margin-top: 20px;
+}
+.methods{
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+.methods button{
+    border: 1px solid gray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.email, .password{
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.email input, .password input{
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background-color: rgb(238, 234, 234);
+    padding: 0 10px;
+    padding-left: 33px;
+    font-size: 14px;
+    /* position: absolute; */
+
+    
+}
+
+.email label, .password label{
+    position: absolute;
+    left: 40px;
+    top: 12px;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    /* background-color: white; */
+    
+}
+.email input:focus, .password input:focus {
+    outline: none;
+    border: 2px solid blue;
+}
+
+.email input:focus ~ label,
+.password input:focus ~ label,
+.email input:not(:placeholder-shown) ~ label,
+.password input:not(:placeholder-shown) ~ label {
+  top: -8px;
+  font-size: 14px;
+  left: 15px;
+  letter-spacing: 1px;
+  color: blue;
+  background:linear-gradient(white 50%, rgb(238, 234, 234) 50%);
+  
+}
+
+
+.remember{
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+}
