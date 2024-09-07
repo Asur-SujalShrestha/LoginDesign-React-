@@ -27,6 +27,10 @@ form{
 .forms{
     margin-top: 20px;
 }
+
+#RegistrationForms{
+    display: block;
+}
 .methods{
     display: flex;
     justify-content: space-between;
@@ -85,7 +89,9 @@ form{
   background:linear-gradient(white 50%, rgb(238, 234, 234) 50%);
   
 }
-
+.submitButton:hover{
+    background-color: aquamarine;
+}
 
 .remember{
     display: flex;

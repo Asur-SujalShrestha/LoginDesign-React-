@@ -2,8 +2,12 @@ import "./LoginPage.css";
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF, FaSlack } from "react-icons/fa";
-import { CiMail, CiLock } from "react-icons/ci";
+import { MdOutlineRemoveRedEye, MdOutlineTextFields, MdOutlineAddLocationAlt, MdOutlineEmail,MdLockOutline } from "react-icons/md";
+import { Link } from "react-router-dom";
 import { SiNuget } from "react-icons/si";
+import axios from "axios";
+import toast from "react-hot-toast";
+
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -12,42 +16,78 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  const validateEmail = (e) => {
-    const emailValue = e.target.value;
-    setEmail(emailValue);
+  const user={
+    email:email,
+    password: password
+  }
 
-    // Simple email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const handelForm=async(e)=>{
+    e.preventDefault();
 
-    if (!emailValue) {
-      setErrorMessage("Email is required");
+    
+    const URL = "http://localhost:8090/api/employee/loginToken";
+    try{
+      const response = await axios.post(URL, user);
+      toast.success(response.data.userName);
+      console.log(response);
+      localStorage.setItem("Token", JSON.stringify(response.data.token))
+      
     }
-
-    else if (emailValue && !emailRegex.test(emailValue)) {
-      setErrorMessage("Please enter a valid email address");
-    } else {
-      setErrorMessage("");
+    catch(error){
+      console.log("Login Failed excep");
+      toast.error(error.response.data.message);
     }
-  };
+}
 
-  const validatePassword = (e) => {
-    const passwordValue = e.target.value;
-    setPassword(passwordValue);
+  // const validateEmail = (e) => {
+  //   const emailValue = e.target.value;
+  //   setEmail(emailValue);
 
-    if (passwordValue && passwordValue.length < 8 || passwordValue.length > 16) {
-      setPasswordError("Password must be 8 character long and less than 16");
+  //   // Simple email validation regex
+  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  //   if (!emailValue) {
+  //     setErrorMessage("Email is required");
+  //   }
+
+  //   else if (emailValue && !emailRegex.test(emailValue)) {
+  //     setErrorMessage("Please enter a valid email address");
+  //   } else {
+  //     setErrorMessage("");
+  //   }
+  // };
+
+  // const validatePassword = (e) => {
+  //   const passwordValue = e.target.value;
+  //   setPassword(passwordValue);
+
+  //   if (passwordValue && passwordValue.length < 8 || passwordValue.length > 16) {
+  //     setPasswordError("Password must be 8 character long and less than 16");
+  //   }
+  //   else {
+  //     setPasswordError("");
+  //   }
+  // }
+
+  const eye = (event) => {
+    event.preventDefault();
+    let eye = document.getElementById("password");
+    if (eye.type === "password") {
+      eye.type = "text";
     }
     else {
-      setPasswordError("");
+      eye.type = "password";
     }
   }
+
+  
 
   return (
 
     <div className="main">
       <div className="subMain">
         <div className="leftDiv" style={{ flex: 1 }}>
-          <form action="#">
+          <form onSubmit={handelForm} id="loginForm" >
             <h2 style={{ color: "blue" }}>dotwork</h2>
             <h1 style={{ fontSize: "24px" }}>Log in to your Account</h1>
             <h4 style={{ fontWeight: "300", fontSize: "14px" }}>Welcome back! Select method to log in:</h4>
@@ -64,17 +104,19 @@ const LoginPage = () => {
             <div className="forms">
               <div className="email">
 
-                <CiMail style={{ position: "absolute", top: "10px", left: "10px", fontSize: "18px" }} />
-                <input type="email" id="email" placeholder=" " value={email} onChange={validateEmail} />
+              <MdOutlineEmail style={{ position: "absolute", top: "10px", left: "10px", fontSize: "18px" }} />
+                <input type="email" id="email" placeholder=" " value={email} onChange={(e) => { setEmail(e.target.value)}} />
                 <label htmlFor="email">Email</label>
                 {errorMessage && <span className="error-message" style={{ color: "red", fontSize: "12px" }}>{errorMessage}</span>}
               </div>
 
-              <div className="password" style={{ marginTop: "10px" }}>
+              <div className="password" style={{ marginTop: "10px", position:"relative" }}>
 
-                <CiLock style={{ position: "absolute", top: "10px", left: "10px", fontSize: "18px" }} />
-                <input type="password" id="password" placeholder=" " value={password} onChange={validatePassword} />
+              <MdLockOutline style={{ position: "absolute", top: "10px", left: "10px", fontSize: "18px" }} />
+                <input type="password" id="password" placeholder=" " value={password} onChange={(e)=>{setPassword(e.target.value)}} />
                 <label htmlFor="password">Password</label>
+                <button type="button" style={{position:"absolute", right:"15px", top:"11px",width: "fit-content", display: "flex", justifyConten: "center", alignItems: "center",
+                   padding: "0", backgroundColor: "transparent"}} onClick={eye}><MdOutlineRemoveRedEye style={{ fontSize:"18px", color:"gray"}}/></button>
                 {passwordError && <span className="error-message" style={{ color: "red", fontSize: "12px" }}>{passwordError}</span>}
               </div>
 
@@ -89,14 +131,15 @@ const LoginPage = () => {
               </div>
 
               <button type="submit" style={{ width: "100%", backgroundColor: "#3434a2", color: "white" }} className="submitButton">Log in</button>
-              <p style={{}}>Don't have an account? <a href="#">Create an account</a></p>
-
-
-
+              <p style={{}}>Don't have an account? <Link style={{cursor:"pointer"}} to="/register" >Create an account</Link></p>
             </div>
 
           </form>
+
+  
         </div>
+
+    {/* Right Div  */}
 
         <div className="rightDiv" style={{ backgroundColor: "#3434a2", flex: 1, justifyContent: "center", display: "flex", alignItems: "center", flexDirection: "column", position: "relative" }}>
           <div style={{ height: "350px", width: "350px", borderRadius: "50%", backgroundColor: "#bbdefb29", display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -118,22 +161,22 @@ const LoginPage = () => {
                 borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center"
               }}>
                 <SiNuget style={{
-                width: "30px", backgroundColor: "white", height: "30px", padding: "5px 7px 5px 4px", borderRadius: "50%", color: "blue",
-                
-              }} />
+                  width: "30px", backgroundColor: "white", height: "30px", padding: "5px 7px 5px 4px", borderRadius: "50%", color: "blue",
+
+                }} />
               </div>
-              
+
               <div style={{
                 width: "50px", height: "50px", backgroundColor: "#ffffff52", position: "absolute", top: "15px", left: "10px",
                 borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center"
               }}>
                 <FaSlack style={{
-                width: "30px", backgroundColor: "white", height: "30px", padding: "5px", borderRadius: "50%",
-                
-              }} />
+                  width: "30px", backgroundColor: "white", height: "30px", padding: "5px", borderRadius: "50%",
+
+                }} />
               </div>
-              
-              
+
+
             </div>
 
           </div>
