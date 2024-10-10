@@ -4,6 +4,8 @@ import LoginPage from './Components/LoginPage';
 import Register from './Components/Register';
 import { Toaster } from 'react-hot-toast';
 import Message from './Components/Message/message';
+import VideoChat from './Components/VideoChat/VideoChat';
+
 
 function App() {
       // var global = window;
@@ -17,10 +19,11 @@ function App() {
 
     <Router>
       <Routes>
-        <Route path='' element={<LoginPage/>}></Route>
+        <Route path='' element={<VideoChat/>}/>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<Register/>} />
         <Route path='/chat' element={<Message/>}/>
+        <Route path='/video' element={<VideoChat/>}/>    
       </Routes>
     </Router>
     </>

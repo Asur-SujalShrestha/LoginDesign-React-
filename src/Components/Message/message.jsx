@@ -10,6 +10,8 @@ import ImageUpload from '../ImageUpload/ImageUpload';
 var stompClient = null;
 const ChatRoom = () => {
 
+    const [messageCount, setMessageCount] = useState(new Map());
+    const [unreadMessages, setUnreadMessages] = useState(new Map());
     const [users, setUsers] = useState(["Sujal", "Namita", "Asur"]);
     const [imageUpload, setImageUpload] = useState(false);
     const [render, setRender] = useState(false);
@@ -34,7 +36,16 @@ const ChatRoom = () => {
     };
 
     const handleImageChange = (e) => {
-        setImage(e.target.files[0]);
+        const file = e.target.files[0];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+    
+        if (file.size > maxSize) {
+            alert('File size exceeds 10MB limit');
+            return;
+        }
+    
+        setImage(file);
+
     };
 
     const toggleImageUpload = () => {
@@ -53,14 +64,16 @@ const ChatRoom = () => {
     }, [tab]);
 
     useEffect(() => {
-        axios.get('http://localhost:8080/messages/public')
+        axios.get('http://localhost:8081/messages/public')
             .then(response => {
                 // publicChats.push(response.data);
                 setPublicChats(response.data);
-                
+
             })
             .catch(error => console.error(error));
+            
     }, []);
+    
 
     useEffect(() => {
         console.log("this is receiver: " + userData.receivername);
@@ -69,7 +82,7 @@ const ChatRoom = () => {
             console.log("before fetch");
 
             // Fetch private messages between the current user and the selected receiver
-            axios.get('http://localhost:8080/messages/private', {
+            axios.get('http://localhost:8081/messages/private', {
                 params: {
                     sender: userData.username,
                     receiver: userData.receivername
@@ -95,9 +108,15 @@ const ChatRoom = () => {
         scrollToBottom();
     }, [privateChats, tab]);
 
+    useEffect(() => {
+
+    }, [privateChats])
+
+   
+
 
     const connect = () => {
-        var Sock = new SockJS('http://localhost:8080/ws');
+        var Sock = new SockJS('http://localhost:8081/ws');
         stompClient = over(Sock);
         stompClient.connect({}, onConnected, onError);
     }
@@ -112,6 +131,8 @@ const ChatRoom = () => {
             setPrivateChats(new Map(privateChats));
 
         });
+
+      
         // stompClient.subscribe('/chatroom/public', onMessageReceived);
         // stompClient.subscribe('/user/'+userData.username+'/private', onPrivateMessage);
         userJoin();
@@ -151,11 +172,50 @@ const ChatRoom = () => {
             const newChats = new Map(prevChats);
             const messages = newChats.get(payloadData.sender) || [];
             newChats.set(payloadData.sender, [...messages, payloadData]);
+
+
+
             return newChats;
+        });
+
+        // Move the sender to the top of the list
+        setUsers(prevUsers => {
+            const updatedUsers = [payloadData.sender, payloadData.receiver, ...prevUsers.filter(user => user !== payloadData.sender)];
+            return updatedUsers;
+        });
+
+        // Mark as unread
+        setUnreadMessages(prev => new Map(prev).set(payloadData.sender, true));
+        setMessageCount(prev =>{
+            const newMessageCount = new Map(prev);
+            const count = newMessageCount.get(payloadData.sender) || [0];
+            const newCount = parseInt(count[0]) + 1;
+            console.log(newCount);
+            
+            newMessageCount.set(payloadData.sender, [newCount, payloadData.receiver]);
+            console.log("this is map " + newMessageCount)
+            return newMessageCount;
         });
 
         scrollToBottom();
     };
+
+    const handleUserClick = (name) => {
+        setTab(name);
+
+        // Mark the messages as read when the user clicks on the chat
+        setUnreadMessages(prev => {
+            const newMap = new Map(prev);
+            newMap.set(name, false);  // Mark as read
+            return newMap;
+        });
+
+        setMessageCount(prev=>{
+            const newMessageCount = new Map(prev);
+            newMessageCount.set(name, 0);
+            return newMessageCount;
+        })
+    }
 
 
 
@@ -268,7 +328,7 @@ const ChatRoom = () => {
                 },
             });
 
-            const imageData = `<img src="${response.data.url}" alt="" />`;
+            const imageData = `<img src="${response.data.url}" alt="" style={{width:"300px"}}/>`;
 
             setImageUrl(response.data.url);
             console.log('Image uploaded:', response.data.url);
@@ -306,7 +366,31 @@ const ChatRoom = () => {
 
                             <li onClick={() => { setTab("CHATROOM") }} className={`member ${tab === "CHATROOM" && "active"}`}>Chatroom</li>
                             {[...privateChats.keys()].map((name, index) => (
-                                name !== userData.username && (<li onClick={() => { setTab(name) }} className={`member ${tab === name && "active"}`} key={index}>{name}</li>)
+                                name !== userData.username && (
+                                    <li
+                                        onClick={() => handleUserClick(name)}
+                                        className={`member ${tab === name && "active"}`}
+                                        key={index}
+                                        style={{ fontWeight: unreadMessages.get(name) && messageCount.get(name) && messageCount.get(name)[1] == userData.username ? 'bold' : 'normal' }}
+                                    >
+                                        <div style={{display:"flex", justifyContent:"space-between"}}>
+
+                                        
+                                        <p style={{margin:"0"}}>{name}</p>
+                                        <span>{messageCount.get(name) && messageCount.get(name)[1] == userData.username && messageCount.get(name)[0] > 0 ? messageCount.get(name)[0] : ""}</span>
+                                        
+                                        </div>
+
+                                        <div className="latest-message">
+                                        {/* Display the latest message under the user's name */}
+                                        {privateChats.get(name) && privateChats.get(name).length > 0 ? (
+                                            <span> { privateChats.get(name).slice(-1)[0].message.startsWith('<img') ? "Sent an image": messageCount.get(name) && messageCount.get(name)[1] == userData.username? "message: " + privateChats.get(name).slice(-1)[0].message: ""}</span>
+                                        ) : (
+                                            <span></span>
+                                        )}
+                                    </div>
+                                    </li>
+                                )
                             ))}
                         </ul>
                     </div>
